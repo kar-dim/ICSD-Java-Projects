@@ -1,9 +1,6 @@
-package util;//Dimitrios Karatzas icsd13072
-//Nikolaos Katsiopis icsd13076
+package util;//Nikolaos Katsiopis icsd13076
 
 import java.security.SecureRandom;
-import java.util.Locale;
-import java.util.Objects;
 import java.util.Random;
 
 public class TokenGenerator {

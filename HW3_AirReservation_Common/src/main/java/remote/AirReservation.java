@@ -1,3 +1,4 @@
+package remote;
 /* Dimitris Karatzas icsd13072
    Apostolos Lazaros icsd13096
 */
@@ -9,6 +10,6 @@ import java.util.List;
 
 public interface AirReservation extends Remote {
     String checkAvailability(String start, String dest, LocalDate date) throws RemoteException;
-    Integer[] reserve(int id, final int mode, List<Integer> seatsList, List<String> names) throws RemoteException;
+    Integer[] reserve(int id, ReserveStep step, List<Integer> seatsList, List<String> names) throws RemoteException;
     String displayReservationData( String name, String lname, int id) throws RemoteException;
 }

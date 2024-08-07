@@ -1,4 +1,4 @@
-/* Dimitris Karatzas icsd13072
+package domain;/* Dimitris Karatzas icsd13072
    Apostolos Lazaros icsd13096
 */
 
@@ -38,7 +38,7 @@ public class Reservation implements Serializable {
     @Override
     public String toString() {
         StringJoiner joiner = new StringJoiner(", ");
-        for (Seat seat : seats)
+        for (Seat seat : seats.stream().filter(Seat::isReserved).toList())
             joiner.add(String.valueOf(seat.getSeatId()));
         return "Your reserved seats: " + joiner;
     }

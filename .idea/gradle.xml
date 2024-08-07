@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="GradleMigrationSettings" migrationVersion="1" />
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
@@ -8,6 +9,16 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/HW1" />
+            <option value="$PROJECT_DIR$/HW2_MultiKAP_Client" />
+            <option value="$PROJECT_DIR$/HW2_MultiKAP_Common" />
+            <option value="$PROJECT_DIR$/HW2_MultiKAP_Server" />
+            <option value="$PROJECT_DIR$/HW3_AirReservation_Client" />
+            <option value="$PROJECT_DIR$/HW3_AirReservation_Common" />
+            <option value="$PROJECT_DIR$/HW3_AirReservation_Server" />
+            <option value="$PROJECT_DIR$/HW4_Client" />
+            <option value="$PROJECT_DIR$/HW4_Common" />
+            <option value="$PROJECT_DIR$/HW4_Server" />
           </set>
         </option>
       </GradleProjectSettings>

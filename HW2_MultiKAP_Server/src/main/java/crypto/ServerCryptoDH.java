@@ -5,19 +5,17 @@ package crypto;
 import util.NetworkOperations;
 
 import javax.crypto.Cipher;
-import javax.crypto.KeyAgreement;
 import javax.crypto.SealedObject;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.*;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class CryptoDH extends CryptoBase {
-    private static final Logger LOGGER = Logger.getLogger(CryptoDH.class.getName());
-    public CryptoDH(NetworkOperations network, String keyStoreName, char[] keyStorePass, String trustStoreName, char[] trustStorePass) {
-        super(network, keyStoreName, keyStorePass, trustStoreName, trustStorePass);
+public class ServerCryptoDH extends CryptoDH {
+    private static final Logger LOGGER = Logger.getLogger(ServerCryptoDH.class.getName());
+    public ServerCryptoDH(NetworkOperations network, String keyStoreName, char[] keyStorePass, String trustStoreName, char[] trustStorePass, String keyAlias, char[] keyPass) {
+        super(network, keyStoreName, keyStorePass, trustStoreName, trustStorePass, keyAlias, keyPass);
         generateDHKeys();
         createIV();
     }
@@ -32,7 +30,7 @@ public class CryptoDH extends CryptoBase {
             generateDHSecretKey();
             //ο αλγόριθμος έχει τελειώσει, μπορούμε να στέλνουμε μηνύματα στο δίκτυο
             //αρχικοποίηση του Cipher για κρυπτογράφηση με AES
-            symmetricKey = new SecretKeySpec(sec, "AES");
+            symmetricKey = new SecretKeySpec(dhSecretKey, "AES");
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             //αρχικοποίηση του hmac
             initializeHMAC();

@@ -7,7 +7,6 @@ import util.NetworkOperations;
 import util.TokenGenerator;
 
 import javax.crypto.*;
-import javax.crypto.spec.IvParameterSpec;
 import java.io.FileInputStream;
 import java.security.*;
 import java.security.cert.CertificateFactory;
@@ -18,11 +17,11 @@ import java.util.logging.Logger;
 
 import static util.MessageType.*;
 
-public class CryptoRSA extends CryptoBase {
-    private static final Logger LOGGER = Logger.getLogger(CryptoRSA.class.getName());
+public class ServerCryptoRSA extends CryptoBase {
+    private static final Logger LOGGER = Logger.getLogger(ServerCryptoRSA.class.getName());
 
-    public CryptoRSA(NetworkOperations network, String keyStoreName, char[] keyStorePass, String trustStoreName, char[] trustStorePass) {
-        super(network, keyStoreName, keyStorePass, trustStoreName, trustStorePass);
+    public ServerCryptoRSA(NetworkOperations network, String keyStoreName, char[] keyStorePass, String trustStoreName, char[] trustStorePass, String keyAlias, char[] keyPass) {
+        super(network, keyStoreName, keyStorePass, trustStoreName, trustStorePass, keyAlias, keyPass);
         createIV(); //παράγουμε τυχαία τα IV parameters τα οποία θα χρησιμοποιηθούν στο CBC (AES Block Cipher)
     }
 

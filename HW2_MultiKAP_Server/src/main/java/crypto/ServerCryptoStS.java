@@ -22,14 +22,13 @@ import java.util.logging.Logger;
 
 import static util.MessageType.*;
 
-public class CryptoStS extends CryptoBase {
-    private static final Logger LOGGER = Logger.getLogger(CryptoStS.class.getName());
+public class ServerCryptoStS extends CryptoBase {
+    private static final Logger LOGGER = Logger.getLogger(ServerCryptoStS.class.getName());
     private BigInteger p, g; //παράμετροι p,g, τους παράγει ο client και τους στέλνει στον "server" πριν ξεκινήσει η διαδικασία
-    private KeyPair keypair_dh; //τα DH keypair_dh
-    private KeyAgreement keyagree;
-    private SecureRandom random;
-    public CryptoStS(NetworkOperations network, String keyStoreName, char[] keyStorePass, String trustStoreName, char[] trustStorePass) {
-        super(network, keyStoreName, keyStorePass, trustStoreName, trustStorePass);
+    private KeyPair keypairDh;
+    private KeyAgreement keyAgreement;
+    public ServerCryptoStS(NetworkOperations network, String keyStoreName, char[] keyStorePass, String trustStoreName, char[] trustStorePass, String keyAlias, char[] keyPass) {
+        super(network, keyStoreName, keyStorePass, trustStoreName, trustStorePass, keyAlias, keyPass);
     }
     //Πρωτόκολλο
 
@@ -75,11 +74,11 @@ public class CryptoStS extends CryptoBase {
 
             //με βάση τα p,g παράγουμε τα DH public/private key μας
             generateParameters();
-            X509Certificate cer_received = (X509Certificate) network.readObject();
+            X509Certificate cerReceived = (X509Certificate) network.readObject();
             network.writeUTF(CERTIFICATE_RECEIVED);
 
             //Validate
-            if (!checkReceivedCertificate(cer_received)) {
+            if (!checkReceivedCertificate(cerReceived)) {
                 throw new ConnectionNotSafeException("The certificate can't be verified!");
             }
 
@@ -95,11 +94,11 @@ public class CryptoStS extends CryptoBase {
             }
 
             //λαμβάνουμε το public dh key (Δηλαδή το g^x)
-            PublicKey received_dh_pubkey = (PublicKey) network.readObject();
+            PublicKey receivedDhPubkey = (PublicKey) network.readObject();
             network.writeUTF(PUBLIC_DH_KEY_RECEIVED);
 
             //στέλνουμε το g^y. το g^y είναι το public dh key (server)
-            network.writeObject(keypair_dh.getPublic());
+            network.writeObject(keypairDh.getPublic());
             //αν δεν μας απαντήσει ο client με PublicDHKeyReceived τότε σφάλμα
             if (!network.readUTF().equals(PUBLIC_DH_KEY_RECEIVED)) {
                 throw new UnknownProtocolCommandException("Unknown command\nExiting session...");
@@ -108,16 +107,16 @@ public class CryptoStS extends CryptoBase {
             /* 3: encrypted μήνυμα */
             //τώρα παράγουμε το shared κλειδί. Εμείς δεν κάνουμε τη λειτουργία (g^x)^y (client) ή (g^y)^x (server)
             //αυτό γίνεται αυτόματα από το keyagree
-            keyagree.init(keypair_dh.getPrivate());
-            keyagree.doPhase(received_dh_pubkey, true);
-            symmetricKey = keyagree.generateSecret("AES");
+            keyAgreement.init(keypairDh.getPrivate());
+            keyAgreement.doPhase(receivedDhPubkey, true);
+            symmetricKey = keyAgreement.generateSecret("AES");
 
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             cipher.init(Cipher.ENCRYPT_MODE, this.symmetricKey, this.iv);
             Signature sig = Signature.getInstance("SHA256withRSA", "BC");
             sig.initSign(privateKey);
-            sig.update(keypair_dh.getPublic().getEncoded());
-            sig.update(received_dh_pubkey.getEncoded());
+            sig.update(keypairDh.getPublic().getEncoded());
+            sig.update(receivedDhPubkey.getEncoded());
             network.writeObject(new SealedObject(Base64.getEncoder().encodeToString(sig.sign()), cipher));
             //αν δε το έλαβε, σφάλμα
             if (!network.readUTF().equals(SIGNED_CIPHERTEXT_RECEIVED)) {
@@ -131,9 +130,9 @@ public class CryptoStS extends CryptoBase {
             byte[] signed_ciphertext = Base64.getDecoder().decode((String) sobj.getObject(cipher));
             //στη συνέχεια θα αποκρυπτογραφήσουμε με το συμμετρικό κλειδί την υπογραφή του server
             sig = Signature.getInstance("SHA256withRSA", "BC");
-            sig.initVerify(cer_received);
-            sig.update(received_dh_pubkey.getEncoded());
-            sig.update(keypair_dh.getPublic().getEncoded());
+            sig.initVerify(cerReceived);
+            sig.update(receivedDhPubkey.getEncoded());
+            sig.update(keypairDh.getPublic().getEncoded());
             if (!sig.verify(signed_ciphertext)) {
                 throw new ConnectionNotSafeException("Your connection is not secure!");
             }
@@ -158,10 +157,10 @@ public class CryptoStS extends CryptoBase {
     private void generateParameters() {
         try {
             KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("DiffieHellman");
-            keyagree = KeyAgreement.getInstance("DiffieHellman");
+            keyAgreement = KeyAgreement.getInstance("DiffieHellman");
             DHParameterSpec dhPS = new DHParameterSpec(p, g);
-            keyPairGen.initialize(dhPS, this.random);
-            keypair_dh = keyPairGen.generateKeyPair();
+            keyPairGen.initialize(dhPS, new SecureRandom());
+            keypairDh = keyPairGen.generateKeyPair();
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }

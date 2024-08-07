@@ -2,7 +2,7 @@
    Nikolaos Katsiopis icsd13076
    Christos Papakostas icsd13143
  */
-package sec3.domain;
+package domain;
 
 import java.io.Serializable;
 import java.time.LocalDate;

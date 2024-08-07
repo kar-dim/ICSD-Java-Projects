@@ -1,8 +1,10 @@
+package domain;
+
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Seat {
+public class Seat implements Serializable {
     private boolean isReserved;
-
     private int seatId;
 
     public boolean isReserved() {

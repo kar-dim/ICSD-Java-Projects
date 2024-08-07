@@ -3,7 +3,7 @@
    Christos Papakostas icsd13143
  */
 
-package sec3.domain;
+package domain;
 
 import java.io.Serializable;
 

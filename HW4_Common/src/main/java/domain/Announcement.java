@@ -1,11 +1,8 @@
-package domain;
-
-/* icsd13072 Karatzas Dimitris
+package domain;/* icsd13072 Karatzas Dimitris
    icsd13096 Lazaros Apostolos*/
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.Objects;
 
 public class Announcement implements Serializable {
@@ -52,8 +49,9 @@ public class Announcement implements Serializable {
 
     @Override
     public String toString() {
-        return "Author: " + author + "\ndomain.Announcement: " + announcement + "\nLast Edit: " + lastEdit.toString() + "\n\n";
+        return "Author: " + author + "\nAnnouncement: " + announcement + "\nLast Edit: " + lastEdit.toString() + "\n\n";
     }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

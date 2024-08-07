@@ -1,14 +1,11 @@
-/* Dimitris Karatzas icsd13072
+package domain;/* Dimitris Karatzas icsd13072
    Apostolos Lazaros icsd13096
  */
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 //απλή κλάση που αναπαριστά μια πτήση
 public class Flight implements Serializable {
@@ -89,15 +86,15 @@ public class Flight implements Serializable {
 
     //προσθήκη κράτησης, θέτουμε σε κάθε θέση της κράτησης TRUE για τη συγκεκριμένη πτήση
     // π.χ θεσεις πτησης: [οχι,οχι,οχι,οχι...] και θεσεις κρατησης:[0,2,3] αρα οι θεσεις πτησεις διαμορφωνονται ως εξης -> [ναι,οχι,ναι,ναι,οχι...]
-    public void addReservation(String name, String lname, List<Seat> seatsProvided) {
+    public void addReservation(String name, String lname, List<Integer> seatsProvided) {
         reservations.add(new Reservation(name, lname, seats));
-        for (Seat seat : seatsProvided)
-            seats.get(seat.getSeatId()).setReserved(seat.isReserved());
+        for (int seatNo : seatsProvided)
+            seats.get(seatNo).setReserved(true);
     }
 
     //επιστρέφει τον πίνακα με τις θέσεις που δεν είναι δεσμευμένες
-    public List<Seat> getNonReservedSeats() {
-        return seats.stream().filter(seat -> !seat.isReserved()).sorted().toList();
+    public Integer[] getNonReservedSeats() {
+        return seats.stream().filter(seat -> !seat.isReserved()).mapToInt(Seat::getSeatId).sorted().boxed().toArray(Integer[]::new);
     }
 
     //toString() -> εμφανίζει τα πάντα σχετικά με τη κλάση, ενώ η displayFlightData() εμφανίζει μόνο όσα ζητούνται (για το 1η επιλογή "έλεγχος διαθεσιμότητας" )

@@ -1,6 +1,8 @@
+package ui;
 /* icsd13072 Karatzas Dimitris
    icsd13096 Lazaros Apostolos*/
 
+import java.time.LocalDate;
 import java.util.Date;
 import javax.swing.table.DefaultTableModel;
 
@@ -24,7 +26,7 @@ class TableModel extends DefaultTableModel {
         if (columnIndex == 0)
             cl = Boolean.class;
         else if (columnIndex == 3) {
-            cl = Date.class;
+            cl = LocalDate.class;
         }
         return cl;
     }
