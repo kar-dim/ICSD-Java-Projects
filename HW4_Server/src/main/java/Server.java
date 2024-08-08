@@ -16,13 +16,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static util.MessageType.*;
 
 public class Server implements Runnable {
-
+    private static final int MAX_THREADS_NUM = 16;
     private final Socket sock;
     private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
     private static final List<User> logged_in = new ArrayList<>();
@@ -38,10 +40,10 @@ public class Server implements Runnable {
     //η main όταν τρέξει αυτόματα θα δημιουργεί συνέχεια Threads για κάθε accept της serversocket
     //έτσι δε θα περιμένει να τελειώσει κάποια accept αλλά θα τρέχουν παράλληλα πολλά threads
     public static void main(String[] args) {
-        try (ServerSocket sc = new ServerSocket(5555)) { //5555 port
+        try (ExecutorService threadPool = Executors.newFixedThreadPool(MAX_THREADS_NUM);
+             ServerSocket sc = new ServerSocket(5555)) { //5555 port
             while (true) {
-                Socket sock = sc.accept();
-                new Thread(new Server(sock)).start();
+                threadPool.execute(new Server(sc.accept()));
             }
         } catch (IOException ioe) {
             LOGGER.log(Level.SEVERE, "Can't make the connection with the client", ioe);
@@ -52,23 +54,22 @@ public class Server implements Runnable {
     //φαίνεται και από την main μέθοδο) θα τρέχει η run() η οποία κάνει όλη τη δουλεία του server
     @Override
     public void run() {
-        try {
-            ObjectInputStream ois = new ObjectInputStream(sock.getInputStream());
-            ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+        try (ObjectInputStream ois = new ObjectInputStream(sock.getInputStream());
+             ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream())) {
 
             /* εδώ ξεκινάει η μεταφορά ωφέλιμων δεδομένων μεταξύ client και server */
             while (true) {
                 Message startMsg = (Message) ois.readObject();
-                writeMessage(oos, new Message(startMsg.getMessage().equals(START) ? STARTED : BAD_FORMAT));
+                writeMessage(oos, new Message(startMsg.message().equals(START) ? STARTED : BAD_FORMAT));
                 final Message msg = (Message) ois.readObject();
-                switch (msg.getMessage()) {
+                switch (msg.message()) {
                     case MessageType.REGISTER -> {
                         //έλεγχος αν ο χρήστης είναι ήδη εγγεγραμμένος, αν η λίστα με τους χρήστες είναι άδεια τότε απλά τον βάζουμε (δηλαδή δε θα μπει στο loop και το if (exists==false) θα τον βαλει
                         boolean exists = users.stream()
-                                .anyMatch(user -> user.getUsername().equals(msg.getUser().getUsername()));
-                         if (!exists) {
+                                .anyMatch(user -> user.username().equals(msg.user().username()));
+                        if (!exists) {
                             synchronized (this) {
-                                users.add(new User(msg.getUser()));
+                                users.add(new User(msg.user()));
                             }
                         }
                         writeMessage(oos, new Message(exists ? REGISTER_FAIL : REGISTER_OK));
@@ -76,9 +77,9 @@ public class Server implements Runnable {
 
                     case MessageType.LOGIN -> {
                         Optional<User> userExists = users.stream()
-                                .filter(user -> user.getUsername().equals(msg.getUser().getUsername())).findFirst();
+                                .filter(user -> user.username().equals(msg.user().username())).findFirst();
                         boolean isLoggedIn = userExists.isPresent() && logged_in.stream()
-                                .anyMatch(user -> user.getUsername().equals(msg.getUser().getUsername()));
+                                .anyMatch(user -> user.username().equals(msg.user().username()));
 
                         //αν δεν υπάρχει στη λίστα στέλνουμε στον client μήνυμα ότι δεν έχει κάνει register, ή αν είναι ήδη logged in (άλλη λίστα αυτή)
                         if (userExists.isEmpty() || isLoggedIn) {
@@ -86,9 +87,9 @@ public class Server implements Runnable {
                         }
                         //έλεγχος του password
                         if (userExists.isPresent() && !isLoggedIn) {
-                            if (userExists.get().getPassword().equals(msg.getUser().getPassword())) {
+                            if (userExists.get().password().equals(msg.user().password())) {
                                 synchronized (this) {
-                                    logged_in.add(new User(msg.getUser()));
+                                    logged_in.add(new User(msg.user()));
                                 }
                                 writeMessage(oos, new Message(LOGIN_OK));
                             } //αν ο κωδικός δεν είναι σωστός, τότε μήνυμα λάθους
@@ -102,7 +103,7 @@ public class Server implements Runnable {
                         //εδώ δε χρειάζεται έλεγχος για το αν ο χρήστης υπάρχει
                         try {
                             synchronized (this) {
-                                announcements.add(msg.getAnnouncement());
+                                announcements.add(msg.announcement());
                             }
                             writeMessage(oos, new Message(CREATE_OK));
                         } catch (Exception e) {
@@ -112,7 +113,7 @@ public class Server implements Runnable {
 
                     case MessageType.EDIT_DELETE -> {
                         List<Announcement> listToSend = announcements.stream()
-                                .filter(announcement -> announcement.getAuthor().equals(msg.getUser().getUsername()) || msg.getUser().getUsername().equals("admin1") || msg.getUser().getUsername().equals("admin2"))
+                                .filter(announcement -> announcement.getAuthor().equals(msg.user().username()) || msg.user().username().equals("admin1") || msg.user().username().equals("admin2"))
                                 .toList();
                         //αν η λίστα με τις ανακοινώσεις του χρήστη είναι άδεια σημαίνει πως δεν έχει βάλει ακόμα κάποια ανακοίνωση, οπότε μήνυμα λάθους
                         //πίσω στον client
@@ -129,7 +130,7 @@ public class Server implements Runnable {
 
                     case MessageType.VIEW -> {
                         List<Announcement> listToSend = announcements.stream()
-                                .filter(announcement -> (announcement.getLastEditDate().isAfter(msg.getFirstDate()) && (announcement.getLastEditDate().isBefore(msg.getSecondDate()))))
+                                .filter(announcement -> (announcement.getLastEditDate().plusDays(1).isAfter(msg.startDate()) && (announcement.getLastEditDate().minusDays(1).isBefore(msg.endDate()))))
                                 .toList();
                         //άδεια=δε βρέθηκε τίποτα, οπότε λάθος
                         if (listToSend.isEmpty())
@@ -141,7 +142,7 @@ public class Server implements Runnable {
                     case MessageType.END -> {
                         //αν στείλει ο client "END" τότε αποσυνδέσουμε τον χρήστη
                         synchronized (this) {
-                            logged_in.removeIf(user -> user.getUsername().equals(msg.getUser().getUsername()) && (user.getPassword().equals(msg.getUser().getPassword())));
+                            logged_in.removeIf(user -> user.username().equals(msg.user().username()) && (user.password().equals(msg.user().password())));
                         }
                         connectionCleanup(sock, ois, oos);
                         return;
@@ -162,8 +163,8 @@ public class Server implements Runnable {
     private void modifyAnnouncements(Message msg, String successMessage, String failureMessage, ObjectOutputStream oos) throws IOException {
         try {
             synchronized (this) {
-                announcements.removeIf(announcement -> announcement.getAuthor().equals(msg.getUser().getUsername()));
-                announcements.addAll(msg.getAnnouncements());
+                announcements.removeIf(announcement -> announcement.getAuthor().equals(msg.user().username()));
+                announcements.addAll(msg.listToSend());
             }
             writeMessage(oos, new Message(successMessage));
         } catch (Exception e) {

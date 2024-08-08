@@ -5,13 +5,10 @@ package ui;
  */
 
 import ui.action.*;
-import util.Session;
 
 import javax.swing.*;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 
 public class MainMenu extends JPanel {
     private final JTabbedPane tabs;
@@ -199,7 +196,7 @@ public class MainMenu extends JPanel {
                 tabs, editDateText.getText(), getTransactionOperation()).doAction());
 
         //όταν πατηθεί το κουμπί για δημιουργία μιας αναφοράς
-        createRecordBtn.addActionListener(e -> new CreateRecordListener(
+        createRecordBtn.addActionListener(e -> new CreateRecordActionListener(
                 tabs, createRecordText.getText(), createDateText.getText(), createValueText.getText(), getTransactionOperation()).doAction());
 
         //καθαρισμός των πεδίων

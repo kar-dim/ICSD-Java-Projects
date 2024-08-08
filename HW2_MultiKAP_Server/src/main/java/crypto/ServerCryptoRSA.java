@@ -6,9 +6,14 @@ import exception.UnknownProtocolCommandException;
 import util.NetworkOperations;
 import util.TokenGenerator;
 
-import javax.crypto.*;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SealedObject;
+import javax.crypto.SecretKey;
 import java.io.FileInputStream;
-import java.security.*;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
@@ -51,24 +56,22 @@ public class ServerCryptoRSA extends CryptoBase {
             }
             //στελνουμε "ΟΚ"
             network.writeUTF(OK);
-
             //λαμβάνουμε το certificate
-            X509Certificate cer_received = (X509Certificate) network.readObject();
-
+            var cerReceived = (X509Certificate) network.readObject();
             //Στέλνουμε ACK οτι το λάβαμε
             network.writeUTF(CERT_RECEIVED);
             //Validate το certificate
-            if (!checkReceivedCertificate(cer_received)) {
+            if (!checkReceivedCertificate(cerReceived)) {
                 throw new ConnectionNotSafeException("The certificate can't be verified!\n");
             }
-            //extract public key από το certificate
-            //αυτό που λαμβάνει
-            PublicKey reveived_pubkey = cer_received.getPublicKey();
+            //extract public key από το certificate που λαμβάνει
+            PublicKey receivedPublicKey = cerReceived.getPublicKey();
 
             //διάβασμα από το αρχείο
-            FileInputStream fis = new FileInputStream("HW2_MultiKAP_Server/certificates/client1signed.cer");
-            X509Certificate cert = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(fis);
-            network.writeObject(cert); //εδώ στέλνουμε το certificate
+            try (FileInputStream fis = new FileInputStream("HW2_MultiKAP_Server/certificates/client1signed.cer")) {
+                var cert = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(fis);
+                network.writeObject(cert); //εδώ στέλνουμε το certificate
+            }
 
             //αν δε το έλαβε, τότε κλείνουμε το session διοτι μάλλον θα υπάρχει πρόβλημα
             if (!network.readUTF().equals(CERT_RECEIVED)) {
@@ -78,17 +81,16 @@ public class ServerCryptoRSA extends CryptoBase {
             symmetricKey = getAESkey();
             //initialize το hmac
             initializeHMAC();
-            //encrypt το AES key (με το public του client) και στέλνουμε το encrypted AES KEY + IV params (base64 string τα bytes)
+            //encryptMessage το AES key (με το public του client) και στέλνουμε το encrypted AES KEY + IV params (base64 string τα bytes)
             Cipher cipher = Cipher.getInstance("RSA", "BC");
-            cipher.init(Cipher.ENCRYPT_MODE, reveived_pubkey);
+            cipher.init(Cipher.ENCRYPT_MODE, receivedPublicKey);
             network.writeObject(new SealedObject(symmetricKey, cipher));
-            network.writeObject(new SealedObject(Base64.getEncoder().encodeToString(this.iv.getIV()), cipher));
-
+            network.writeObject(new SealedObject(Base64.getEncoder().encodeToString(iv.getIV()), cipher));
             //παραγωγή του random token
             //χρησιμοποιείται για να αποτρέψουμε τα replay attacks
             String token = new TokenGenerator().generateToken();
-            network.writeObject(encrypt(token, token));
-            //παραδειγμα συνομιλιας
+            network.writeObject(encryptMessage(token, token));
+            //παραδειγμα συνομιλίας
             communicateSecurely(token);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -96,7 +98,7 @@ public class ServerCryptoRSA extends CryptoBase {
     }
 
     private SecretKey getAESkey() throws NoSuchAlgorithmException {
-        KeyGenerator keygen = KeyGenerator.getInstance("AES");
+        var keygen = KeyGenerator.getInstance("AES");
         keygen.init(256, new SecureRandom());
         return keygen.generateKey();
     }

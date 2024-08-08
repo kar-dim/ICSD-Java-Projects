@@ -12,12 +12,12 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.security.PrivateKey;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static util.Constants.*;
+import static util.Constants.CONFIG_FILE;
+import static util.Constants.SIGNATURE_FILE_NAME;
 import static util.EncryptionUtils.generateKeys;
 import static util.EncryptionUtils.signUserFiles;
 import static util.FileUtils.areKeysPresent;

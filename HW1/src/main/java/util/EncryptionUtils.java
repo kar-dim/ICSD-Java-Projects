@@ -4,9 +4,13 @@ import domain.Expense;
 import domain.Income;
 import domain.Transaction;
 
-import javax.crypto.*;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SealedObject;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.*;
 import java.util.Base64;
@@ -24,7 +28,7 @@ public class EncryptionUtils {
         try {
             final Cipher cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.ENCRYPT_MODE, key);
-            return cipher.doFinal(text.getBytes());
+            return cipher.doFinal(text.getBytes(StandardCharsets.UTF_8));
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             throw ex;

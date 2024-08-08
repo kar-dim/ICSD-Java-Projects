@@ -3,32 +3,14 @@ package crypto;//Dimitrios Karatzas icsd13072
 import util.NetworkOperations;
 import util.TokenGenerator;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.util.Base64;
-import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.KeyAgreement;
-import javax.crypto.Mac;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SealedObject;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.PublicKey;
+import java.util.Base64;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ClientCryptoDH extends CryptoDH {
     private static final Logger LOGGER = Logger.getLogger(ClientCryptoDH.class.getName());

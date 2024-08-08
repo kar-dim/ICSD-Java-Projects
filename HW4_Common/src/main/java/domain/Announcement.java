@@ -1,4 +1,5 @@
-package domain;/* icsd13072 Karatzas Dimitris
+package domain;
+/* icsd13072 Karatzas Dimitris
    icsd13096 Lazaros Apostolos*/
 
 import java.io.Serializable;

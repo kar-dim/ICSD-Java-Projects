@@ -4,7 +4,7 @@
 
 import domain.Message;
 import ui.MainMenu;
-import util.NetworkOperations;
+import util.Session;
 
 import javax.swing.JFrame;
 import java.awt.BorderLayout;
@@ -14,6 +14,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static util.MessageType.END;
+import static util.NetworkOperations.initializeConnection;
+import static util.NetworkOperations.writeMessage;
 
 public class Client {
     private static final Logger LOGGER = Logger.getLogger(Client.class.getName());
@@ -29,9 +31,8 @@ public class Client {
             @Override
             public void windowClosing(WindowEvent e) {
                 try {
-                    NetworkOperations network = new NetworkOperations();
-                    network.initializeConnection();
-                    network.writeMessage(new Message(END, MainMenu.logged_in));
+                    initializeConnection();
+                    writeMessage(new Message(END, Session.getLoggedInUser()));
                 } catch (Exception ex) {
                     LOGGER.log(Level.SEVERE, null, ex);
                 }

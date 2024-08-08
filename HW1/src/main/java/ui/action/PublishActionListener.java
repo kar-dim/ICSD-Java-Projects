@@ -1,10 +1,7 @@
 package ui.action;
 
-import util.Session;
-
 import javax.swing.*;
 import java.awt.GridLayout;
-import java.security.PrivateKey;
 
 import static util.Constants.EXPENSES_FILE_NAME;
 import static util.Constants.INCOME_FILE_NAME;

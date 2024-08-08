@@ -8,91 +8,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 //η κλάση για το μήνυμα, αντικείμενα αυτού του τύπου μεταφέρονται μόνο από client σε server και αντίστροφα
-public class Message implements Serializable {
+public record Message(
+        String message, User user, Announcement announcement, List<Announcement> listToSend, LocalDate startDate, LocalDate endDate) implements Serializable {
 
-    private Announcement announcement;
-    private List<Announcement> list_to_send;
-    private User user;
-    private final String message;
-    private LocalDate startDate, endDate;
-
-    //απλό μήνυμα (END, START κτλ, που δεν περιέχουν κάποιο αντικείμενο απλώς πληροφορούν για κάποια κατάσταση)
     public Message(String msg) {
-        message = msg;
+        this(msg, null, null, null, null, null);
+    }
+    public Message(String msg, String userName) {
+        this(msg, new User(userName, null, null, null));
     }
 
-    //μήνυμα+username, χρησιμοποιείται για να δώσει το όνομα του user που είναι Logged in στην εφαρμογή προς τον σερβερ
-    public Message(String msg, String usern) {
-        message = msg;
-        user = new User(usern, null, null, null); //μας νοιάζει μόνο το username για έλεγχο
-    }
-
-    //μήνυμα+ register (νέος χρήστης) Client->Server
     public Message(String msg, User usr) {
-        message = msg;
-        user = new User(usr.getUsername(), usr.getPassword(), usr.getName(), usr.getLname());
+        this(msg, new User(usr), null, null, null, null);
     }
 
-    //μήνυμα+λίστα μόνο (View)
     public Message(String msg, List<Announcement> list) {
-        message = msg;
-        list_to_send = new ArrayList<>(list);
+        this(msg, null, null, new ArrayList<>(list), null, null);
     }
 
-    //μήνυμα και ανακοίνωση μόνο
     public Message(String msg, Announcement announce) {
-        message = msg;
-        announcement = new Announcement(announce.getAnnouncement(), announce.getAuthor(), announce.getLastEditDate());
+        this(msg, null, new Announcement(announce), null, null, null);
     }
 
-    //το αντικειμενο χρηστη ειναι απραιτητο ωστε ο σερβερ να ψαξει στο αρχειο του και να διαγραψει μονο αυτουνου του χρηστη τις ανακοινωσεις που
-    //θελει ο χρηστης να διαγραψει (τον constructor αυτόν τον χρησιμοποιεί ο Client)
-    public Message(String msg, List<Announcement> list, User usr) {
-        message = msg;
-        list_to_send = new ArrayList<>(list);
-        user = new User(usr);
+    public Message(String msg, User usr, List<Announcement> list) {
+        this(msg, usr, null, new ArrayList<>(list), null, null);
     }
 
-    //εδω ο client στελνει τις ημερομηνιες που θελει να ψαξει ανακοινωσεις
     public Message(String msg, LocalDate startDate, LocalDate endDate) {
-        message = msg;
-        this.startDate = startDate;
-        this.endDate = endDate;
-    }
-
-    //ανακοίνωση για δημιουργία (χρειάζεταιαντικείμενο χρήστη προφανώς αφού δε μπορεί ο καθένας να φτιάχνει ανακοινώσεις αλλά οι logged in users)
-    public Message(String msg, User usr, Announcement announce) {
-        announcement = announce;
-        message = msg;
-        user = new User(usr);
-    }
-
-    //setters/getters
-    public String getMessage() {
-        return message;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public Announcement getAnnouncement() {
-        return announcement;
-    }
-
-    public void setAnnouncement(Announcement announce) {
-        announcement = new Announcement(announce);
-    }
-
-    public List<Announcement> getAnnouncements() {
-        return list_to_send;
-    }
-
-    public LocalDate getFirstDate() {
-        return startDate;
-    }
-
-    public LocalDate getSecondDate() {
-        return endDate;
+        this(msg, null, null, null, startDate, endDate);
     }
 }

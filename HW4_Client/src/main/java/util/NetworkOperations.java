@@ -12,53 +12,38 @@ import java.util.logging.Logger;
 public class NetworkOperations {
 
     private static final Logger LOGGER = Logger.getLogger(NetworkOperations.class.getName());
-    private Socket sock;
-    private ObjectInputStream ois;
-    private ObjectOutputStream oos;
+    private static Socket sock;
+    private static ObjectInputStream ois;
+    private static ObjectOutputStream oos;
 
-    public Socket getSock() {
-        return sock;
-    }
-
-    public void setSock(Socket sock) {
-        this.sock = sock;
-    }
-
-    public ObjectInputStream getOis() {
-        return ois;
-    }
-
-    public void setOis(ObjectInputStream ois) {
-        this.ois = ois;
-    }
-
-    public ObjectOutputStream getOos() {
-        return oos;
-    }
-
-    public void setOos(ObjectOutputStream oos) {
-        this.oos = oos;
-    }
-
-    public void writeMessage(Message message) throws IOException {
+    public static void writeMessage(Message message) throws IOException {
         oos.writeObject(message);
         oos.flush();
     }
 
-    public void initializeConnection() throws IOException, ClassNotFoundException {
-        sock = new Socket("localhost", 5555);
-        oos = new ObjectOutputStream(sock.getOutputStream());
-        ois = new ObjectInputStream(sock.getInputStream());
+    public static Message readMessage() throws IOException, ClassNotFoundException {
+        return (Message) ois.readObject();
+    }
+
+    public static void initializeConnection() throws IOException, ClassNotFoundException {
+        if (sock == null && oos == null && ois == null) {
+            sock = new Socket("localhost", 5555);
+            oos = new ObjectOutputStream(sock.getOutputStream());
+            ois = new ObjectInputStream(sock.getInputStream());
+        }
         writeMessage(new Message(MessageType.START));
         ois.readObject();
     }
 
-    public void closeConnection() {
+    public static void closeConnection() {
         if (ois != null && oos != null && sock != null) {
             try {
                 ois.close();
                 oos.close();
                 sock.close();
+                ois = null;
+                oos = null;
+                sock = null;
             } catch (IOException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }

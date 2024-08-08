@@ -24,8 +24,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static remote.ReserveStep.*;
-
 public class Server extends UnicastRemoteObject implements AirReservation {
     private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
     private static final Logger LOGGER = Logger.getLogger(Server.class.getName());

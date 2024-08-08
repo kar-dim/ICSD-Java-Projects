@@ -22,7 +22,4 @@ public abstract class ActionBase {
     }
 
     public abstract boolean doAction();
-    protected void initKeys() {
-
-    }
 }

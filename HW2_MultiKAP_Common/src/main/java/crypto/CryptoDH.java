@@ -18,9 +18,9 @@ public abstract class CryptoDH extends CryptoBase {
 
     protected void generateDHKeys() {
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("DH");
+            var keyPairGenerator = KeyPairGenerator.getInstance("DH");
             keyPairGenerator.initialize(2048);
-            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            var keyPair = keyPairGenerator.generateKeyPair();
             privateDHKey = keyPair.getPrivate();
             publicDHKey = keyPair.getPublic();
         } catch (NoSuchAlgorithmException e) {
@@ -30,13 +30,12 @@ public abstract class CryptoDH extends CryptoBase {
 
     protected void generateDHSecretKey() {
         try {
-            KeyAgreement keyAgreement = KeyAgreement.getInstance("DH");
+            var keyAgreement = KeyAgreement.getInstance("DH");
             keyAgreement.init(privateDHKey);
             keyAgreement.doPhase(publicDHExtKey, true);
             //σωστό μέγεθος (32bytes = 256bit) για το secret key
-            final byte[] fixedSecKey = keyAgreement.generateSecret();
             dhSecretKey = new byte[32];
-            System.arraycopy(fixedSecKey, 0, dhSecretKey, 0, dhSecretKey.length);
+            System.arraycopy(keyAgreement.generateSecret(), 0, dhSecretKey, 0, dhSecretKey.length);
         } catch (IllegalStateException | InvalidKeyException | NoSuchAlgorithmException e) {
             LOGGER.log(Level.SEVERE, null, e);
         }

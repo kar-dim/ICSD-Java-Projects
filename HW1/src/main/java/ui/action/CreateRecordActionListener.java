@@ -17,7 +17,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
-import java.security.PrivateKey;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.logging.Level;
@@ -25,12 +24,12 @@ import java.util.logging.Level;
 import static util.Constants.*;
 import static util.EncryptionUtils.decrypt;
 
-public class CreateRecordListener extends ActionBase {
+public class CreateRecordActionListener extends ActionBase {
     private final String createRecordDescription;
     private final String createDate;
     private final String createValue;
     private final String transactionOperation;
-    public CreateRecordListener(JTabbedPane tabs, String createRecordDescription, String createDate, String createValue, String transactionOperation) {
+    public CreateRecordActionListener(JTabbedPane tabs, String createRecordDescription, String createDate, String createValue, String transactionOperation) {
         super(tabs);
         this.createRecordDescription = createRecordDescription;
         this.createDate = createDate;

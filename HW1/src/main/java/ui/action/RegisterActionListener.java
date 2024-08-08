@@ -8,7 +8,6 @@ import util.Constants;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import java.io.*;
-import java.security.PublicKey;
 import java.util.logging.Level;
 
 import static util.Constants.ENCRYPTED_AES_KEY_FILE_NAME;

@@ -22,7 +22,7 @@ public class ClientMultiKAP {
 
     public static void main(String[] args) {
         Security.addProvider(new BouncyCastleProvider());
-        Properties properties = new Properties();
+        var properties = new Properties();
         try  (FileInputStream fis = new FileInputStream("HW2_MultiKAP_Client/config.properties")) {
             properties.load(fis);
             //set system properties
@@ -30,12 +30,12 @@ public class ClientMultiKAP {
             System.setProperty("javax.net.ssl.trustStore", properties.getProperty("javax.net.ssl.trustStore"));
 
             //load keystore paths/passwords and key aliases/passwords
-            String keyStoreName = properties.getProperty("keyStoreName");
-            char[] keyStorePass = properties.getProperty("keyStorePass").toCharArray();
-            String trustStoreName = properties.getProperty("trustStoreName");
-            char[] trustStorePass = properties.getProperty("trustStorePass").toCharArray();
-            String keyAlias = properties.getProperty("keyAlias");
-            char[] keyPass = properties.getProperty("keyPass").toCharArray();
+            var keyStoreName = properties.getProperty("keyStoreName");
+            var keyStorePass = properties.getProperty("keyStorePass").toCharArray();
+            var trustStoreName = properties.getProperty("trustStoreName");
+            var trustStorePass = properties.getProperty("trustStorePass").toCharArray();
+            var keyAlias = properties.getProperty("keyAlias");
+            var keyPass = properties.getProperty("keyPass").toCharArray();
 
             Scanner scan = new Scanner(System.in);
             network.initializeConnectionAsClient();

@@ -3,8 +3,9 @@
 */
 
 //κλάση για τον client, απλώς δημιουργεί το GUI
-import java.awt.BorderLayout;
+
 import javax.swing.JFrame;
+import java.awt.BorderLayout;
 
 public class Client extends JFrame{
     public static void main(String[] args) throws Exception {

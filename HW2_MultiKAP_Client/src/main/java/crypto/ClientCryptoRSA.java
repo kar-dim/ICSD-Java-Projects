@@ -9,7 +9,6 @@ import javax.crypto.Cipher;
 import javax.crypto.SealedObject;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import java.io.File;
 import java.io.FileInputStream;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -85,10 +84,9 @@ public class ClientCryptoRSA extends CryptoBase {
             iv = new IvParameterSpec(Base64.getDecoder().decode((String) sobj_iv.getObject(cipher)));
             initializeHMAC();
             //παιρνουμε το session token (αποκρυπτογράφηση με το AES key τώρα)
-            Message msg = decrypt((SealedObject) network.readObject());
-            String token = msg.getToken();
+            Message msg = decryptMessage((SealedObject) network.readObject());
             //παραδειγμα συνομιλιας
-            communicateSecurelyAsClient(token);
+            communicateSecurelyAsClient(msg.token());
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, null, e);
         }

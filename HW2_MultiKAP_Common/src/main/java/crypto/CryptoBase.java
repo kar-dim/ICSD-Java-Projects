@@ -4,7 +4,10 @@ import domain.Message;
 import exception.ConnectionNotSafeException;
 import util.NetworkOperations;
 
-import javax.crypto.*;
+import javax.crypto.Cipher;
+import javax.crypto.Mac;
+import javax.crypto.SealedObject;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
@@ -12,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
@@ -51,11 +55,9 @@ public abstract class CryptoBase {
     }
 
     private KeyStore loadKeyStore(String keyStoreFile, char[] password) {
-        try {
-            KeyStore keystore = KeyStore.getInstance("JKS"); //με keytool το φτιάξαμε σε JKS format
-            InputStream is = new File(keyStoreFile).toURI().toURL().openStream();
+        try (InputStream is = new File(keyStoreFile).toURI().toURL().openStream()){
+            KeyStore keystore = KeyStore.getInstance("JKS");
             keystore.load(is, password);
-            is.close();
             return keystore;
         } catch (CertificateException | KeyStoreException | IOException | NoSuchAlgorithmException e) {
             LOGGER.log(Level.SEVERE, null, e);
@@ -67,12 +69,9 @@ public abstract class CryptoBase {
     protected String SHA256Hash(String message) {
         try {
             byte[] hashed =  MessageDigest.getInstance("SHA-256").digest(message.getBytes(StandardCharsets.UTF_8));
-            //μετατροπή σε hex
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < hashed.length; i++) {
-                sb.append(Integer.toString((hashed[i] & 0xff) + 0x100, 16).substring(1));
-            }
-            //επιστροφή του hash σε string
+            for (byte oneByte : hashed)
+                sb.append(Integer.toString((oneByte & 0xff) + 0x100, 16).substring(1));
             return sb.toString();
         } catch (NoSuchAlgorithmException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -83,10 +82,8 @@ public abstract class CryptoBase {
     //Μέθοδος που checkάρει αν το certificate που στέλνεται έχει γίνει sign από την ca
     protected boolean checkReceivedCertificate(X509Certificate cer) {
         try {
-            //διάβασμα του certificate του CA από το truststore
-            X509Certificate ca_cer = (X509Certificate) trustStore.getCertificate("CAcer");
-            //ελέγχουμε αν το certificate που δίνεται έχει υπογραφτεί από τον CA
-            cer.verify(ca_cer.getPublicKey());
+            X509Certificate trustStoreCertificate = (X509Certificate) trustStore.getCertificate("CAcer");
+            cer.verify(trustStoreCertificate.getPublicKey());
             return true;
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -98,25 +95,22 @@ public abstract class CryptoBase {
         return Base64.getEncoder().encodeToString(mac.doFinal(data.getBytes()));
     }
 
-    //μέθοδος για encrypt ενός μηνύματος
-    protected SealedObject encrypt(String msg, String token) {
+    protected SealedObject encryptMessage(String msg, String token) {
         try {
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             cipher.init(Cipher.ENCRYPT_MODE, symmetricKey, iv);
-            Message message = new Message(msg, token, HMACSign( msg + token));
-            return new SealedObject(message, cipher);
+            return new SealedObject(new Message(msg, token, HMACSign( msg + token)), cipher);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
         return null;
     }
 
-    //μέθοδος για decrypt
-    protected Message decrypt(SealedObject sobj) {
+    protected Message decryptMessage(SealedObject sealedObject) {
         try {
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, symmetricKey, iv);
-            return (Message) sobj.getObject(cipher);
+            return (Message) sealedObject.getObject(cipher);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -134,9 +128,9 @@ public abstract class CryptoBase {
     }
 
     protected void createIV() {
-        byte[] iv_bytes = new byte[16];
-        new SecureRandom().nextBytes(iv_bytes);
-        iv = new IvParameterSpec(iv_bytes);
+        byte[] ivBytes = new byte[16];
+        new SecureRandom().nextBytes(ivBytes);
+        iv = new IvParameterSpec(ivBytes);
     }
 
     protected void communicateSecurely(String token) throws ConnectionNotSafeException, IOException, ClassNotFoundException {
@@ -144,8 +138,8 @@ public abstract class CryptoBase {
         Scanner scan = new Scanner(System.in);
         while (true) {
             //λαμβάνουμε μήνυμα
-            Message msgReceived = decrypt((SealedObject) network.readObject());
-            String msgReceivedHMAC = msgReceived.getHMAC();
+            Message msgReceived = decryptMessage((SealedObject) network.readObject());
+            String msgReceivedHMAC = msgReceived.hmac();
             //έλεγχος του hmac του μηνύματος
             if (msgReceivedHMAC == null || !msgReceivedHMAC.equals(HMACSign(msgReceived.toString()))) {
                 throw new ConnectionNotSafeException("Your connection is not secure!");
@@ -153,13 +147,13 @@ public abstract class CryptoBase {
 
             //έλεγχος αν το token είναι σωστό
             String hash = SHA256Hash(msgReceived.toString());
-            if (hash == null || !hash.equals(SHA256Hash(msgReceived.getMessage() + token))) {
+            if (hash == null || !hash.equals(SHA256Hash(msgReceived.message() + token))) {
                 //άλλαξε το token = replay attack!
                 throw new ConnectionNotSafeException("Your connection is not secure!");
             }
 
-            LOGGER.log(Level.INFO, "Client: " + msgReceived.getMessage());
-            if (msgReceived.getMessage().trim().equalsIgnoreCase(EXIT)) {
+            LOGGER.log(Level.INFO, "Client: " + msgReceived.message());
+            if (msgReceived.message().trim().equalsIgnoreCase(EXIT)) {
                 LOGGER.log(Level.INFO, "The peer has left");
                 return;
             }
@@ -167,7 +161,7 @@ public abstract class CryptoBase {
             LOGGER.log(Level.INFO, "Type something: ");
             String outgoingMessage = scan.nextLine();
             LOGGER.log(Level.INFO, "Server: " + outgoingMessage);
-            network.writeObject(encrypt(outgoingMessage, token));
+            network.writeObject(encryptMessage(outgoingMessage, token));
             if (outgoingMessage.trim().equalsIgnoreCase(EXIT)) {
                 return;
             }
@@ -184,27 +178,42 @@ public abstract class CryptoBase {
             LOGGER.log(Level.INFO, "Client: " + outgoingMessage);
 
             //στέλνουμε το μήνυμα
-            network.writeObject(encrypt(outgoingMessage, token));
+            network.writeObject(encryptMessage(outgoingMessage, token));
             if (outgoingMessage.trim().equalsIgnoreCase(EXIT)) {
                 return;
             }
             //λαμβάνουμε μήνυμα
-            Message msgReceived = this.decrypt((SealedObject) network.readObject());
-            String receivedHMAC = msgReceived.getHMAC();
+            Message msgReceived = decryptMessage((SealedObject) network.readObject());
             //έλεγχος του hmac του μηνύματος
-            if (!receivedHMAC.equals(HMACSign(msgReceived.toString()))) {
+            if (!msgReceived.hmac().equals(HMACSign(msgReceived.toString()))) {
                 throw new ConnectionNotSafeException("Your connection is not secure!");
             }
             //έλεγχος αν το token είναι σωστό
             String hash = SHA256Hash(msgReceived.toString());
-            if (!hash.equals(SHA256Hash(msgReceived.getMessage() + token))) {
+            if (!hash.equals(SHA256Hash(msgReceived.message() + token))) {
                 //άλλαξε το token = replay attack!
                 throw new ConnectionNotSafeException("Your connection is not secure!");
             }
-            LOGGER.log(Level.INFO, "Server: " + msgReceived.getMessage());
-            if (msgReceived.getMessage().trim().equalsIgnoreCase(EXIT)) {
+            LOGGER.log(Level.INFO, "Server: " + msgReceived.message());
+            if (msgReceived.message().trim().equalsIgnoreCase(EXIT)) {
                 return;
             }
         }
+    }
+
+    protected byte[] signBytes(byte[]...bytesArray) throws Exception {
+        Signature sig = Signature.getInstance("SHA256withRSA", "BC");
+        sig.initSign(privateKey);
+        for (var byteArr : bytesArray)
+            sig.update(byteArr);
+        return sig.sign();
+    }
+
+    protected boolean verifySignature(Certificate certificate, byte[] signature, byte[]...bytesArray) throws Exception {
+        Signature sig = Signature.getInstance("SHA256withRSA", "BC");
+        sig.initVerify(certificate);
+        for (var byteArr : bytesArray)
+            sig.update(byteArr);
+        return sig.verify(signature);
     }
 }

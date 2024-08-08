@@ -2,14 +2,11 @@ package ui;
 /* icsd13072 Karatzas Dimitris
    icsd13096 Lazaros Apostolos*/
 
-import java.time.LocalDate;
-import java.util.Date;
 import javax.swing.table.DefaultTableModel;
+import java.time.LocalDate;
 
-//μοντέλο πίνακα, απαραίτητο ώστε να θέσουμε τα checkboxes και τα text fields των ανακοινώσεων να είναι editable μόνο
-class TableModel extends DefaultTableModel {
-
-    TableModel(int rows, int cols) { // constructor
+public class TableModel extends DefaultTableModel {
+    public TableModel(int rows, int cols) { // constructor
         super(rows, cols);
         this.setColumnIdentifiers(new String[]{"Check to delete", "Announcement", "Last Edit Date"});
     }

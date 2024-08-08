@@ -9,9 +9,8 @@ import javax.swing.JTabbedPane;
 import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.NoSuchFileException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.util.logging.Level;
 
 import static util.EncryptionUtils.*;
@@ -36,7 +35,7 @@ public class LoginActionListener extends ActionBase {
             while ((userFromFile = (User) ois.readObject()) != null) {
                 if (userFromFile.getUsername().equals(loginUserName)) {
                     String currentPasswordToCheck = new String(loginPass) + userFromFile.getSalt();
-                    String decryptedPassFromFile = new String(decrypt(userFromFile.getPassword(), privateKey));
+                    String decryptedPassFromFile = new String(decrypt(userFromFile.getPassword(), privateKey), StandardCharsets.UTF_8);
                     //hash με τον αλγόριθμο sha256 για έλεγχο
                     if (decryptedPassFromFile.equals(SHA256Hash(currentPasswordToCheck))) {
                         Session.setLoggedInUser("HW1/" + removeSpecialCharacters(loginUserName) + "/");

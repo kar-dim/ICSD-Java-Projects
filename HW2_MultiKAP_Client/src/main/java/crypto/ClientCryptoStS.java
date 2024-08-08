@@ -76,15 +76,15 @@ public class ClientCryptoStS extends CryptoBase {
             //στη συνέχεια στέλνουμε τα p,g και IV στον "server"
             network.writeObject(p);
             network.writeObject(g);
-            network.writeObject(Base64.getEncoder().encodeToString(this.iv.getIV()));
+            network.writeObject(Base64.getEncoder().encodeToString(iv.getIV()));
             //αν δεν μας απαντήσει ο "server" με ParametersReceived τότε σφάλμα
             if (!network.readUTF().equals(PARAMETERS_RECEIVED)) {
                 throw new UnknownProtocolCommandException("Unknown command\nExiting session...");
             }
 
             //Στέλνουμε το certificate μας
-            FileInputStream fis = new FileInputStream(new File("HW2_MultiKAP_Client/certificates/client2signed.cer"));
-            X509Certificate cert = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(fis);
+            FileInputStream fis = new FileInputStream("HW2_MultiKAP_Client/certificates/client2signed.cer");
+            var cert = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(fis);
             network.writeObject(cert);
 
             //αν δε το έλαβε, τότε κλείνουμε το session διοτι μάλλον θα υπάρχει πρόβλημα
@@ -95,13 +95,13 @@ public class ClientCryptoStS extends CryptoBase {
 
             //μας στέλνει το Certificate οπότε εμείς το ελέγχουμε, δηλαδή αν έχει υπογραφτεί με την CA
             //από το truststore μας
-            X509Certificate cer_received = (X509Certificate) network.readObject();
+            var cerReceived = (X509Certificate) network.readObject();
 
             // στέλνουμε ACK ότι το πήραμε
             network.writeUTF(CERTIFICATE_RECEIVED);
 
             //Validate το certificate
-            if (!checkReceivedCertificate(cer_received)) {
+            if (!checkReceivedCertificate(cerReceived)) {
                 throw new ConnectionNotSafeException("The certificate can't be verified!");
             }
 
@@ -135,19 +135,12 @@ public class ClientCryptoStS extends CryptoBase {
 
             byte[] signedCiphertext = Base64.getDecoder().decode((String) sobj.getObject(cipher));
             //στη συνέχεια θα αποκρυπτογραφήσουμε με το συμμετρικό κλειδί την υπογραφή του server
-            Signature sig = Signature.getInstance("SHA256withRSA", "BC");
-            sig.initVerify(cer_received);
-            sig.update(receivedDhPubkey.getEncoded());
-            sig.update(keypairDh.getPublic().getEncoded());
-            if (!sig.verify(signedCiphertext)) {
+            if (!verifySignature(cerReceived, signedCiphertext, receivedDhPubkey.getEncoded(), keypairDh.getPublic().getEncoded())) {
                 throw new ConnectionNotSafeException("Your connection is not secure!");
             }
-            cipher.init(Cipher.ENCRYPT_MODE, symmetricKey, iv);
             // στέλνουμε το signed ciphertext κρυπτογραφημένο μέσω του συμμετρικού κλειδιού
-            sig.initSign(privateKey);
-            sig.update(keypairDh.getPublic().getEncoded());
-            sig.update(receivedDhPubkey.getEncoded());
-            network.writeObject(new SealedObject(Base64.getEncoder().encodeToString(sig.sign()), cipher));
+            cipher.init(Cipher.ENCRYPT_MODE, symmetricKey, iv);
+            network.writeObject(new SealedObject(Base64.getEncoder().encodeToString(signBytes(keypairDh.getPublic().getEncoded(), receivedDhPubkey.getEncoded())), cipher));
             //αν δε το έλαβε, σφάλμα
             if (!network.readUTF().equals(SIGNED_CIPHERTEXT_RECEIVED)) {
                 throw new UnknownProtocolCommandException("Unknown command\nExiting session...");
@@ -155,16 +148,16 @@ public class ClientCryptoStS extends CryptoBase {
 
             cipher.init(Cipher.DECRYPT_MODE, symmetricKey, iv);
             //αν όλα πάνε καλά ο Server θα στείλει "StartSymmetricEncryption" encrypted με το AES κλειδί
-            SealedObject sealStart = (SealedObject) network.readObject();
-            String start = (String) sealStart.getObject(cipher);
-            if (!start.equals(START_SYMMETRIC_ENCRYPTION)) {
+            var sealedObject = (SealedObject) network.readObject();
+            String startMessageReceived = (String) sealedObject.getObject(cipher);
+            if (!startMessageReceived.equals(START_SYMMETRIC_ENCRYPTION)) {
                 throw new UnknownProtocolCommandException("Unknown command\nExiting session...");
             }
             //initialize το hmac
             initializeHMAC();
             //διάβασμα του session token (αποκρυπτογράφηση με το AES πρώτα)
-            SealedObject seal = (SealedObject) network.readObject();
-            String token = (String) seal.getObject(cipher);
+            sealedObject = (SealedObject) network.readObject();
+            String token = (String) sealedObject.getObject(cipher);
 
             //παράδειγμα συνομιλίας
             communicateSecurelyAsClient(token);
@@ -182,10 +175,10 @@ public class ClientCryptoStS extends CryptoBase {
             p = BigInteger.probablePrime(2048, random);
             g = BigInteger.probablePrime(256, random);
             //παραγωγή των keyagree
-            KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("DiffieHellman");
+            var keyPairGen = KeyPairGenerator.getInstance("DiffieHellman");
             keyAgreement = KeyAgreement.getInstance("DiffieHellman");
-            DHParameterSpec dhPS = new DHParameterSpec(p, g);
-            keyPairGen.initialize(dhPS, random);
+            var dhParameters = new DHParameterSpec(p, g);
+            keyPairGen.initialize(dhParameters, random);
             keypairDh = keyPairGen.generateKeyPair();
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
