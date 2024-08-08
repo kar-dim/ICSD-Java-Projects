@@ -5,7 +5,7 @@ import java.util.Objects;
 
 public class Seat implements Serializable {
     private boolean isReserved;
-    private int seatId;
+    private final int seatId;
 
     public boolean isReserved() {
         return isReserved;
@@ -17,10 +17,6 @@ public class Seat implements Serializable {
 
     public int getSeatId() {
         return seatId;
-    }
-
-    public void setSeatId(int seatId) {
-        this.seatId = seatId;
     }
 
     public Seat(boolean isReserved, int seatId) {

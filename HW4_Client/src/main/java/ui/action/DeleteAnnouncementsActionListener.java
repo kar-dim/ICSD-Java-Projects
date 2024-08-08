@@ -4,12 +4,10 @@ import domain.Announcement;
 import domain.Message;
 import domain.User;
 
-import javax.swing.AbstractButton;
 import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.stream.IntStream;
@@ -36,6 +34,7 @@ public class DeleteAnnouncementsActionListener extends ActionBase {
     public void doAction() {
         try {
             initializeConnection();
+            //κρατάμε τις ανακοινώσεις που δεν έχουν επιλεχτεί από τον χρήστη για διαγραφή
             List<Announcement> userKeep = IntStream.range(0, deleteAnnouncementCheck.size())
                     .filter(index -> !deleteAnnouncementCheck.get(index).isSelected())
                     .mapToObj(userAnnouncements::get)

@@ -4,11 +4,15 @@
 
 //κλάση για τον client, απλώς δημιουργεί το GUI
 
+import ui.MainMenu;
+import util.Session;
+
 import javax.swing.JFrame;
 import java.awt.BorderLayout;
 
 public class Client extends JFrame{
     public static void main(String[] args) throws Exception {
+        Session.initializeRmiLookup("//localhost/ReservationService");
         //δημιουργία του frame
         JFrame frame = new JFrame("Reservations");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

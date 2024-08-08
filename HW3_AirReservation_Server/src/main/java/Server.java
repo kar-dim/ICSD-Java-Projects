@@ -72,7 +72,7 @@ public class Server extends UnicastRemoteObject implements AirReservation {
     @Override
     public String checkAvailability(String start, String destination, LocalDate date) throws RemoteException {
         String result = flightList.stream()
-                .filter(value -> value.getFrom().equalsIgnoreCase(start) && value.getDestination().equalsIgnoreCase(destination) && value.getDate().toLocalDate().equals(date))
+                .filter(value -> value.from().equalsIgnoreCase(start) && value.destination().equalsIgnoreCase(destination) && value.date().toLocalDate().equals(date))
                 .map(Flight::displayFlightData)
                 .collect(Collectors.joining());
         return result.isEmpty() ? "Nothing found!" : result;
@@ -84,7 +84,7 @@ public class Server extends UnicastRemoteObject implements AirReservation {
         switch (reserveStep) {
             case FIRST -> {
                 Optional<Flight> flight = flightList.stream()
-                        .filter(f -> f.getId() == id)
+                        .filter(f -> f.id() == id)
                         .findFirst();
                 if (flight.isPresent())
                     return flight.get().getNonReservedSeats();
@@ -95,7 +95,7 @@ public class Server extends UnicastRemoteObject implements AirReservation {
             case THIRD -> {
                 synchronized (this) {
                     flightList.stream()
-                            .filter(flight -> flight.getId() == id)
+                            .filter(flight -> flight.id() == id)
                             .forEach(flight -> flight.addReservation(names.get(0), names.get(1), seatsList));
                 }
             }
@@ -106,9 +106,9 @@ public class Server extends UnicastRemoteObject implements AirReservation {
     @Override
     public String displayReservationData(String name, String lname, int id) throws RemoteException {
         String result = flightList.stream()
-                .filter(flight -> flight.getId() == id)
-                .flatMap(flight -> flight.getReservations().stream()
-                        .filter(reservation -> reservation.getPassengerName().equalsIgnoreCase(name) && reservation.getPassengerLastName().equalsIgnoreCase(lname))
+                .filter(flight -> flight.id() == id)
+                .flatMap(flight -> flight.reservations().stream()
+                        .filter(reservation -> reservation.passengerName().equalsIgnoreCase(name) && reservation.passengerLastName().equalsIgnoreCase(lname))
                         .map(reservation -> flight + reservation.toString() + "\n"))
                 .collect(Collectors.joining());
         return result.isEmpty() ? "No results found!" : result;
