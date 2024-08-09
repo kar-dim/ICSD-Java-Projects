@@ -18,27 +18,24 @@ import java.util.logging.Logger;
 import static util.MessageType.*;
 
 public class ServerMultiKAP {
-
     private static final Logger LOGGER = Logger.getLogger(ServerMultiKAP.class.getName());
-
     private static final NetworkOperations network = new NetworkOperations();
-
     public static void main(String[] args) {
         Security.addProvider(new BouncyCastleProvider());
-        Properties properties = new Properties();
-        try  (FileInputStream fis = new FileInputStream("HW2_MultiKAP_Server/config.properties")) {
+        var properties = new Properties();
+        try (FileInputStream fis = new FileInputStream("HW2_MultiKAP_Server/config.properties")) {
             properties.load(fis);
             //set system properties
             System.setProperty("jdk.crypto.KeyAgreement.legacyKDF", properties.getProperty("jdk.crypto.KeyAgreement.legacyKDF"));
             System.setProperty("javax.net.ssl.trustStore", properties.getProperty("javax.net.ssl.trustStore"));
 
             //load keystore paths/passwords and key aliases/passwords
-            String keyStoreName = properties.getProperty("keyStoreName");
-            char[] keyStorePass = properties.getProperty("keyStorePass").toCharArray();
-            String trustStoreName = properties.getProperty("trustStoreName");
-            char[] trustStorePass = properties.getProperty("trustStorePass").toCharArray();
-            String keyAlias = properties.getProperty("keyAlias");
-            char[] keyPass = properties.getProperty("keyPass").toCharArray();
+            var keyStoreName = properties.getProperty("keyStoreName");
+            var keyStorePass = properties.getProperty("keyStorePass").toCharArray();
+            var trustStoreName = properties.getProperty("trustStoreName");
+            var trustStorePass = properties.getProperty("trustStorePass").toCharArray();
+            var keyAlias = properties.getProperty("keyAlias");
+            var keyPass = properties.getProperty("keyPass").toCharArray();
 
             LOGGER.log(Level.INFO, "Waiting for connection....");
             network.initializeConnection();

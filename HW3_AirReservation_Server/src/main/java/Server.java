@@ -35,21 +35,23 @@ public class Server extends UnicastRemoteObject implements AirReservation {
             final String flightsFilePath = "HW3_AirReservation_Server/flights.dat";
             Flight temp;
             if (new File(flightsFilePath).exists()) {
-                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(flightsFilePath));
-                //διαβάζουμε όλο το αρχείο μέχρι να φτάσουμε στο τέλος, αν είναι άδειο δεν αλλάζει κάτι, απλώς η λίστα είναι άδεια
-                while ((temp = (Flight) ois.readObject()) != null)
-                    flightList.add(temp);
-                return;
+                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(flightsFilePath))) {
+                    //διαβάζουμε όλο το αρχείο μέχρι να φτάσουμε στο τέλος, αν είναι άδειο δεν αλλάζει κάτι, απλώς η λίστα είναι άδεια
+                    while ((temp = (Flight) ois.readObject()) != null)
+                        flightList.add(temp);
+                    return;
+                }
             }
             new File(flightsFilePath).createNewFile();
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(flightsFilePath));
-            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(flightsFilePath));
-            oos.writeObject(new Flight(1, "Athens", "Prague", 120, LocalDateTime.parse("10-10-2016 16:30", dateFormatter), List.of(new Reservation("Name1", "Lname1", List.of(new Seat(true, 2), new Seat(true, 51), new Seat(true, 100))))));
-            oos.writeObject(new Flight(2, "New York", "Athens", 160, LocalDateTime.parse("12-10-2016 18:00", dateFormatter), List.of(new Reservation("Name1", "Lname1", List.of(new Seat(true, 24))))));
-            oos.writeObject(new Flight(3, "Thessaloniki", "Berlin", 120, LocalDateTime.parse("10-05-2017 18:00", dateFormatter), List.of(new Reservation("Name2", "Lname2", List.of(new Seat(true, 17), new Seat(true, 18))))));
-            //διαβάζουμε το αρχείο που μόλις γράψαμε (για επαλήθευση οτι γράφτηκαν σωστά)
-            while ((temp = (Flight) ois.readObject()) != null)
-                flightList.add(temp);
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(flightsFilePath));
+                 ObjectInputStream ois = new ObjectInputStream(new FileInputStream(flightsFilePath))) {
+                oos.writeObject(new Flight(1, "Athens", "Prague", 120, LocalDateTime.parse("10-10-2016 16:30", dateFormatter), List.of(new Reservation("Name1", "Lname1", List.of(new Seat(true, 2), new Seat(true, 51), new Seat(true, 100))))));
+                oos.writeObject(new Flight(2, "New York", "Athens", 160, LocalDateTime.parse("12-10-2016 18:00", dateFormatter), List.of(new Reservation("Name1", "Lname1", List.of(new Seat(true, 24))))));
+                oos.writeObject(new Flight(3, "Thessaloniki", "Berlin", 120, LocalDateTime.parse("10-05-2017 18:00", dateFormatter), List.of(new Reservation("Name2", "Lname2", List.of(new Seat(true, 17), new Seat(true, 18))))));
+                //διαβάζουμε το αρχείο που μόλις γράψαμε (για επαλήθευση οτι γράφτηκαν σωστά)
+                while ((temp = (Flight) ois.readObject()) != null)
+                    flightList.add(temp);
+            }
         } catch (EOFException ignored) {
         } catch (IOException | DateTimeParseException | ClassNotFoundException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -58,7 +60,7 @@ public class Server extends UnicastRemoteObject implements AirReservation {
 
     public static void main(String[] args) throws Exception {
         LOGGER.log(Level.INFO, "RMI server start");
-        try { //special exception handler for registry creation
+        try {
             LocateRegistry.createRegistry(1099);
             LOGGER.log(Level.INFO, "RMI registry created.");
         } catch (RemoteException ignored) {

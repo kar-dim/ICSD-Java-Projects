@@ -8,7 +8,6 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
 import javax.crypto.SealedObject;
 import javax.crypto.spec.DHParameterSpec;
-import java.io.File;
 import java.io.FileInputStream;
 import java.math.BigInteger;
 import java.security.*;
@@ -83,9 +82,10 @@ public class ClientCryptoStS extends CryptoBase {
             }
 
             //Στέλνουμε το certificate μας
-            FileInputStream fis = new FileInputStream("HW2_MultiKAP_Client/certificates/client2signed.cer");
-            var cert = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(fis);
-            network.writeObject(cert);
+            try (FileInputStream fis = new FileInputStream("HW2_MultiKAP_Client/certificates/client2signed.cer")) {
+                var cert = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(fis);
+                network.writeObject(cert);
+            }
 
             //αν δε το έλαβε, τότε κλείνουμε το session διοτι μάλλον θα υπάρχει πρόβλημα
             if (!network.readUTF().equals(CERTIFICATE_RECEIVED)) {
@@ -129,11 +129,11 @@ public class ClientCryptoStS extends CryptoBase {
             cipher.init(Cipher.DECRYPT_MODE, symmetricKey, iv);
 
             //λαμβάνουμε το signed ciphertext
-            SealedObject sobj = (SealedObject) network.readObject();
+            var sealedObject = (SealedObject) network.readObject();
             //στέλνουμε ack ότι το λάβαμε
             network.writeUTF(SIGNED_CIPHERTEXT_RECEIVED);
 
-            byte[] signedCiphertext = Base64.getDecoder().decode((String) sobj.getObject(cipher));
+            byte[] signedCiphertext = Base64.getDecoder().decode((String) sealedObject.getObject(cipher));
             //στη συνέχεια θα αποκρυπτογραφήσουμε με το συμμετρικό κλειδί την υπογραφή του server
             if (!verifySignature(cerReceived, signedCiphertext, receivedDhPubkey.getEncoded(), keypairDh.getPublic().getEncoded())) {
                 throw new ConnectionNotSafeException("Your connection is not secure!");
@@ -148,7 +148,7 @@ public class ClientCryptoStS extends CryptoBase {
 
             cipher.init(Cipher.DECRYPT_MODE, symmetricKey, iv);
             //αν όλα πάνε καλά ο Server θα στείλει "StartSymmetricEncryption" encrypted με το AES κλειδί
-            var sealedObject = (SealedObject) network.readObject();
+            sealedObject = (SealedObject) network.readObject();
             String startMessageReceived = (String) sealedObject.getObject(cipher);
             if (!startMessageReceived.equals(START_SYMMETRIC_ENCRYPTION)) {
                 throw new UnknownProtocolCommandException("Unknown command\nExiting session...");

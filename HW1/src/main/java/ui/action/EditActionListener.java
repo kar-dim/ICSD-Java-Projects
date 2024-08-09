@@ -70,16 +70,14 @@ public class EditActionListener extends ActionBase {
         List<Transaction> recordsMatched = new ArrayList<>();
         List<Transaction> recordsNotMatched = new ArrayList<>();
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(loggedInUsernamePath + fileName))) {
-            SealedObject sealed;
             Transaction record;
             while (true) {
-                sealed = (SealedObject) ois.readObject();
+                SealedObject sealed = (SealedObject) ois.readObject();
                 record = isExpense ? (Expense) sealed.getObject(cipher) : (Income) sealed.getObject(cipher);
-                if (record.getTransactionDate().equals(date)) {
+                if (record.getTransactionDate().equals(date))
                     recordsMatched.add(record); //προσθήκη στη λίστα μόνο αν οι ημερομηνίες είναι ίδιες, αλλιώς προσθήκη στην άλλη λίστα
-                } else {
+                else
                     recordsNotMatched.add(record);
-                }
             }
         } catch (EOFException ignored) {
         }

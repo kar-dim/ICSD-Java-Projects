@@ -71,7 +71,7 @@ public class RegisterActionListener extends ActionBase {
                 } else {
                     JOptionPane.showMessageDialog(tabs, "Cannot register, application error", "Error", JOptionPane.ERROR_MESSAGE);
                 }
-            } //αν δε μπορεί να δημιουργήσει το φάκελο σημαίνει πς υπάρχει ήδη και άρα δε μπορεί να γίνει register
+            } //αν δεν μπορεί να δημιουργήσει το φάκελο σημαίνει πς υπάρχει ήδη και άρα δε μπορεί να γίνει register
             else {
                 throw new UserExistsException();
             }

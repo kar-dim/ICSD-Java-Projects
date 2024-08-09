@@ -48,42 +48,41 @@ public class ClientCryptoRSA extends CryptoBase {
             //ξεκινάμε πρώτοι ως client και στέλνουμε StartSession για να ξεκινήσει η διαδικασία
             network.writeUTF(START_SESSION);
 
-            //αν δεν μας απαντήσει ο "server" με ΟΚ τότε σφάλμα
+            //αν δε μας απαντήσει ο "server" με ΟΚ τότε σφάλμα
             if (!network.readUTF().equals(OK)) {
                 throw new UnknownProtocolCommandException("Unknown command\nExiting session...");
             }
             //Στέλνουμε το certificate μας
-            FileInputStream fis = new FileInputStream("HW2_MultiKAP_Client/certificates/client2signed.cer");
-            X509Certificate cert = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(fis);
-            network.writeObject(cert); //στέλνουμε το certificate μας
+            try (FileInputStream fis = new FileInputStream("HW2_MultiKAP_Client/certificates/client2signed.cer")) {
+                var cert = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(fis);
+                network.writeObject(cert); //στέλνουμε το certificate μας
+            }
 
-            //αν δε το έλαβε, τότε κλείνουμε το session διοτι μάλλον θα υπάρχει πρόβλημα
+            //αν δεν το έλαβε, τότε κλείνουμε το session διοτι μάλλον θα υπάρχει πρόβλημα
             if (!network.readUTF().equals(CERT_RECEIVED)) {
-                LOGGER.log(Level.SEVERE,"Protocol error\nExiting session...");
+                LOGGER.log(Level.SEVERE, "Protocol error\nExiting session...");
                 return;
             }
 
             //λαμβάνουμε certificate 
-            X509Certificate cer_received = (X509Certificate)network.readObject();
+            var cerReceived = (X509Certificate) network.readObject();
             network.writeUTF(CERT_RECEIVED);
 
             //Validate το certificate
-            if (!checkReceivedCertificate(cer_received)) {
+            if (!checkReceivedCertificate(cerReceived)) {
                 throw new ConnectionNotSafeException("The certificate can't be verified!");
             }
 
-            //λαμβάνουμε το συμμετρικό κλειδί + τα IV parameters (κρυπτογραφημένα με το public key μας
-            //οπότε μπορούμε να τα αποκρυπτογραφήσουμε με το private key μας)
-            SealedObject sobj_aes = (SealedObject) network.readObject();
-            SealedObject sobj_iv = (SealedObject) network.readObject();
+            //λαμβάνουμε το συμμετρικό κλειδί + τα IV parameters
+            SealedObject sealedAesKey = (SealedObject) network.readObject();
+            SealedObject sealedIv = (SealedObject) network.readObject();
             //αρχικοποίηση του cipher για αποκρυπτογράφηση του συμμετρικού κλειδιού
             Cipher cipher = Cipher.getInstance("RSA", "BC");
             cipher.init(Cipher.DECRYPT_MODE, privateKey);
-            //aes key + IV + hmac
-            symmetricKey = (SecretKey) sobj_aes.getObject(cipher);
-            iv = new IvParameterSpec(Base64.getDecoder().decode((String) sobj_iv.getObject(cipher)));
+            symmetricKey = (SecretKey) sealedAesKey.getObject(cipher);
+            iv = new IvParameterSpec(Base64.getDecoder().decode((String) sealedIv.getObject(cipher)));
             initializeHMAC();
-            //παιρνουμε το session token (αποκρυπτογράφηση με το AES key τώρα)
+            //παιρνουμε το session token (αποκρυπτογράφηση με το AES key)
             Message msg = decryptMessage((SealedObject) network.readObject());
             //παραδειγμα συνομιλιας
             communicateSecurelyAsClient(msg.token());

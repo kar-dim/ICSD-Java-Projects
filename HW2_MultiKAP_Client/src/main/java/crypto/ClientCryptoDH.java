@@ -45,10 +45,10 @@ public class ClientCryptoDH extends CryptoDH {
             generateDHSecretKey();
             //αρχικοποίηση του Cipher για κρυπτογράφηση με AES
             symmetricKey = new SecretKeySpec(dhSecretKey, "AES");
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             //αρχικοποίηση του hmac
             initializeHMAC();
             //πρώτα στέλνουμε το SESSION TOKEN
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             cipher.init(Cipher.ENCRYPT_MODE, symmetricKey, iv);
             String token = new TokenGenerator().generateToken();
             network.writeObject(new SealedObject(token, cipher));

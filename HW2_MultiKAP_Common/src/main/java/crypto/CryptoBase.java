@@ -56,7 +56,7 @@ public abstract class CryptoBase {
 
     private KeyStore loadKeyStore(String keyStoreFile, char[] password) {
         try (InputStream is = new File(keyStoreFile).toURI().toURL().openStream()){
-            KeyStore keystore = KeyStore.getInstance("JKS");
+            var keystore = KeyStore.getInstance("JKS");
             keystore.load(is, password);
             return keystore;
         } catch (CertificateException | KeyStoreException | IOException | NoSuchAlgorithmException e) {
@@ -82,7 +82,7 @@ public abstract class CryptoBase {
     //Μέθοδος που checkάρει αν το certificate που στέλνεται έχει γίνει sign από την ca
     protected boolean checkReceivedCertificate(X509Certificate cer) {
         try {
-            X509Certificate trustStoreCertificate = (X509Certificate) trustStore.getCertificate("CAcer");
+            var trustStoreCertificate = (X509Certificate) trustStore.getCertificate("CAcer");
             cer.verify(trustStoreCertificate.getPublicKey());
             return true;
         } catch (Exception ex) {

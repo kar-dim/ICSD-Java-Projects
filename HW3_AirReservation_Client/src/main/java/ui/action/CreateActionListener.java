@@ -1,7 +1,6 @@
 package ui.action;
 
 import remote.ReserveStep;
-import ui.MainMenu;
 import util.Session;
 
 import javax.swing.*;
@@ -13,7 +12,6 @@ import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class CreateActionListener extends ActionBase {
     private final int id;
@@ -35,17 +33,18 @@ public class CreateActionListener extends ActionBase {
                 return;
             }
             JList<Integer> reservedSeats = new JList<>(listOfNonReservedSeats);
-            JPanel panel = new JPanel();
-            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
             reservedSeats.setFont(new Font("Arial", Font.BOLD, 20));
             reservedSeats.setFixedCellHeight(38);
             reservedSeats.setFixedCellWidth(38);
             reservedSeats.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
             reservedSeats.setLayoutOrientation(JList.HORIZONTAL_WRAP);
             reservedSeats.setVisibleRowCount(8);
+
+            JPanel panel = new JPanel();
+            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
             panel.add(reservedSeats);
 
-            //αφού βάλαμε τη λίστα θα βάλουμε και το κουμπί
             JButton seatsConfirmBtn = new JButton("OK");
             panel.add(seatsConfirmBtn, BorderLayout.SOUTH);
             //εδώ θα εμφανιστούν (σε νέο παράθυρο) οι διαθέσιμες θέσεις σε checkboxes, ο χρήστης θα επιλέξει κάποιες θέσεις και στη συνέχεια
@@ -112,11 +111,10 @@ public class CreateActionListener extends ActionBase {
                     });
                 } catch (RemoteException ex) {
                     LOGGER.log(Level.SEVERE, null, ex);
-                    //αν η λίστα είναι κενή απλώς γράφουμε στον χρήστη πως δεν επέλεξε κάτι (σφάλμα)
                 }
             });
         } catch (RemoteException ex) {
-            Logger.getLogger(MainMenu.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 }

@@ -27,13 +27,10 @@ public class PublishActionListener extends ActionBase {
         }
 
         //Εμφάνιση στο UI
-        JTextArea expensesTextArea = createResultsTextArea(true, monthSelected);
-        JTextArea incomeTextArea = createResultsTextArea(false, monthSelected);
-
         JPanel recordsPanel = new JPanel();
         recordsPanel.setLayout(new GridLayout(1, 2));
-        recordsPanel.add(new JScrollPane(expensesTextArea));
-        recordsPanel.add(new JScrollPane(incomeTextArea));
+        recordsPanel.add(new JScrollPane(createResultsTextArea(true, monthSelected)));
+        recordsPanel.add(new JScrollPane(createResultsTextArea(false, monthSelected)));
 
         JFrame frame = new JFrame("Results");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -44,13 +41,10 @@ public class PublishActionListener extends ActionBase {
     }
 
     private JTextArea createResultsTextArea(boolean isExpense, int monthSelected) {
-        String recordFile = isExpense ? EXPENSES_FILE_NAME : INCOME_FILE_NAME;
-        String headLine = "Your Income for this month Selected\n\n";
-        if (isExpense)
-            headLine = headLine.replace("Income","Expenses");
+        String headLine = "Your " + (isExpense ? "Expenses" : "Income") + " for this month Selected\n\n";
         JTextArea textArea = new JTextArea();
         textArea.setText(headLine);
-        textArea.append(decryptRecordsFromFile(privateKey, recordFile, monthSelected));
+        textArea.append(decryptRecordsFromFile(privateKey, isExpense ? EXPENSES_FILE_NAME : INCOME_FILE_NAME, monthSelected));
         textArea.setEditable(false);
         return textArea;
     }

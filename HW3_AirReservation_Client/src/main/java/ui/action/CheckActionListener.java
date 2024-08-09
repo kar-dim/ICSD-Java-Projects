@@ -25,19 +25,18 @@ public class CheckActionListener extends ActionBase {
     public void doAction() {
         try {
             LocalDate date = LocalDate.parse(checkDate, dateFormatter);
-            JFrame searchResults = new JFrame("Search results");
-            searchResults.setVisible(true);
-            JPanel searchPanel = new JPanel();
+
             JTextArea textArea = new JTextArea(20, 40);
             textArea.setEditable(false); //εφόσον αρχικοποιηθεί, δεν επιτρέπουμε την αλλαγή του αφού είναι read only
-            JScrollPane scrollPane = new JScrollPane(textArea);
-
             textArea.append(Session.getAirReservation().checkAvailability(departure, destination, date));
 
-            searchPanel.add(scrollPane);
+            JPanel searchPanel = new JPanel();
+            searchPanel.add( new JScrollPane(textArea));
+
+            JFrame searchResults = new JFrame("Search results");
+            searchResults.setVisible(true);
             searchResults.add(searchPanel);
             searchResults.pack();
-
         } catch (RemoteException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         } catch (DateTimeParseException ex) {

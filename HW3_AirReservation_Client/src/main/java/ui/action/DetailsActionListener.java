@@ -23,7 +23,6 @@ public class DetailsActionListener extends ActionBase {
             String result = Session.getAirReservation().displayReservationData(name, lastName, id);
             //θα εμφανίσουμε το αποτέλεσμα σε ένα νέο παράθυρο
             JPanel displayPanel = new JPanel();
-            //JTextArea που θα περιέχει το αποτέλεσμα της αναζήτησης του σερβερ
             JTextArea displayResultsArea = new JTextArea(20, 40);
             displayResultsArea.setEditable(false); //εφόσον αρχικοποιηθεί, δεν επιτρέπουμε την αλλαγή του αφού είναι read only
             displayResultsArea.setText(result);
