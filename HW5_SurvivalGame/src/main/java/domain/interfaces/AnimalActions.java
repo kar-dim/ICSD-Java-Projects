@@ -26,16 +26,16 @@ public interface AnimalActions {
         gameGrid.set(currentRow + rowOffset, currentCol + colOffset, animal);
     }
 
+    private boolean outOfBoundsMove(int currentRow, int currentCol, int gridSize, Coord pos) {
+        return (pos == Coord.ABOVE && currentRow == 0) ||
+                (pos == Coord.BELOW && currentRow == gridSize - 1) ||
+                (pos == Coord.LEFT && currentCol == 0) ||
+                (pos == Coord.RIGHT && currentCol == gridSize - 1);
+    }
+
     default boolean canMove(GameGrid gameGrid, int currentRow, int currentCol, Coord pos, AnimalType allowedNeighbor) {
-        if (pos == Coord.ABOVE && currentRow == 0) {
+        if (outOfBoundsMove(currentRow, currentCol, gameGrid.getGridSize(), pos))
             return false;
-        } else if (pos == Coord.BELOW && currentRow == gameGrid.getGridSize() - 1) {
-            return false;
-        } else if (pos == Coord.LEFT && currentCol == 0) {
-            return false;
-        } else if (pos == Coord.RIGHT && currentCol == gameGrid.getGridSize() - 1){
-            return false;
-        }
         return gameGrid.get(currentRow + pos.getRowOffset(), currentCol + pos.getColOffset()).getType() == allowedNeighbor;
     }
 
