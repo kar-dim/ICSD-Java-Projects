@@ -19,6 +19,7 @@
             <option value="$PROJECT_DIR$/HW4_Client" />
             <option value="$PROJECT_DIR$/HW4_Common" />
             <option value="$PROJECT_DIR$/HW4_Server" />
+            <option value="$PROJECT_DIR$/HW5_SurvivalGame" />
           </set>
         </option>
       </GradleProjectSettings>
