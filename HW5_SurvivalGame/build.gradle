@@ -2,6 +2,10 @@ plugins {
     id 'java'
 }
 
+compileJava {
+    options.encoding = "UTF-8"
+}
+
 group = 'gr.karatzasd'
 version = '1.0-SNAPSHOT'
 
