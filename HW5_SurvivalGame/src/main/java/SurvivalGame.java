@@ -1,6 +1,10 @@
 import domain.*;
+import domain.enums.AnimalType;
 
 import java.util.Random;
+
+import static domain.enums.AnimalType.ANT;
+import static domain.enums.AnimalType.BEETLE;
 
 public class SurvivalGame {
     private final GameGrid gameGrid;
@@ -8,17 +12,17 @@ public class SurvivalGame {
 
     public SurvivalGame(int beetleNum, int antsNum) {
         gameGrid = new GameGrid(MAX_GRID_SIZE);
-        fillAnimals(Beetle.class, beetleNum);
-        fillAnimals(Ant.class, antsNum);
+        fillAnimals(BEETLE, beetleNum);
+        fillAnimals(ANT, antsNum);
     }
 
-    private  <T extends Animal> void fillAnimals(Class<T> type, int animalNum) {
+    private  void fillAnimals(AnimalType type, int animalNum) {
         Random random = new Random();
         int row, col;
         for (int i = 0; i < animalNum; i++) {
             row = random.nextInt(MAX_GRID_SIZE);
             col = random.nextInt(MAX_GRID_SIZE);
-            Animal animal = type.equals(Ant.class) ? new Ant(row,col) : new Beetle(row,col);
+            Animal animal = type == ANT ? new Ant(row,col) : new Beetle(row,col);
             if (gameGrid.get(row, col) instanceof EmptyAnimal) {
                 gameGrid.set(row, col, animal);
             } else
@@ -27,37 +31,36 @@ public class SurvivalGame {
     }
 
     public boolean end() {
-        int beetleCounter = gameGrid.getAnimalCount(Beetle.class);
-        int antCounter = gameGrid.getAnimalCount(Ant.class);
-        if (beetleCounter == 0)
+        int beetleCounter = gameGrid.getAnimalCount(BEETLE);
+        int antCounter = gameGrid.getAnimalCount(ANT);
+        if (beetleCounter == 0) {
             System.out.println("Ants have conquered the game!");
-        else if (antCounter == 0)
+            return true;
+        } else if (antCounter == 0) {
             System.out.println("Beetles have conquered the game!");
-        else
-            return false;
-        return true;
+            return true;
+        }
+        return false;
     }
 
     public void moveTime() {
         //πρώτα τα σκαθάρια
-        moveAnimals(Beetle.class);
-        moveAnimals(Ant.class);
+        moveAnimals(BEETLE);
+        moveAnimals(ANT);
         enableMovementAgain();
     }
 
-    private <T extends Animal> void moveAnimals(Class<T> type) {
+    private void moveAnimals(AnimalType type) {
         for (int i = 0; i < MAX_GRID_SIZE; i++)
             for (int j = 0; j < MAX_GRID_SIZE; j++)
-                if (type.isInstance(gameGrid.get(i, j)) && gameGrid.get(i, j).canMoveThisRound())
+                if (gameGrid.get(i, j).getType() == type && gameGrid.get(i, j).canMoveThisRound())
                     gameGrid.get(i, j).move(gameGrid);
     }
-    public <T extends Animal> void multiplyAnimals(Class<T> type, int multiplyCyclesRequired) {
-        for (int i = 0; i < MAX_GRID_SIZE; i++) {
-            for (int j = 0; j < MAX_GRID_SIZE; j++) {
-                if (type.isInstance(gameGrid.get(i, j)) && gameGrid.get(i, j).getMultiplyCycles() == multiplyCyclesRequired)
-                    gameGrid.get(i, j).multiply(gameGrid);
-            }
-        }
+    public void multiplyAnimals(AnimalType type, int multiplyCyclesRequired) {
+        for (int i = 0; i < MAX_GRID_SIZE; i++)
+            for (int j = 0; j < MAX_GRID_SIZE; j++)
+                if (gameGrid.get(i, j).getType() == type && gameGrid.get(i, j).getMultiplyCycles() == multiplyCyclesRequired)
+                    gameGrid.get(i, j).multiply(gameGrid, i, j);
     }
 
 

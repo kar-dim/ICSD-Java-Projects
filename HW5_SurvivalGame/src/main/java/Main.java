@@ -1,7 +1,7 @@
-import domain.Ant;
-import domain.Beetle;
-
 import java.util.Scanner;
+
+import static domain.enums.AnimalType.ANT;
+import static domain.enums.AnimalType.BEETLE;
 
 public class Main {
     public static void main(String[] args) {
@@ -17,11 +17,11 @@ public class Main {
             //αναπαραγωγή μυρμιγκιών και έλεγχος για το αν πρέπει να πεθάνουν σκαθάρια
             if (rounds % 3 == 0) {
                 game.killStarvingBeetles();
-                game.multiplyAnimals(Ant.class, 3);
+                game.multiplyAnimals(ANT, 3);
             }
             //αναπαραγωγή σκαθαριών
             if (rounds % 7 == 0)
-                game.multiplyAnimals(Beetle.class, 7);
+                game.multiplyAnimals(BEETLE, 7);
 
             scan.nextLine();
             game.moveTime();

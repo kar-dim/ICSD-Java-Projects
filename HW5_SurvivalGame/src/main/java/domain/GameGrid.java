@@ -1,11 +1,12 @@
 package domain;
 
+import domain.enums.AnimalType;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameGrid {
     private final List<List<Animal>> grid;
-
     public GameGrid(int maxGridSize) {
         grid = new ArrayList<>();
         for (int i = 0; i < maxGridSize; i++) {
@@ -34,10 +35,10 @@ public class GameGrid {
                 .forEach(animal -> animal.setCanMoveThisRound(true));
     }
 
-    public <T extends Animal> int getAnimalCount(Class<T> animalType) {
+    public int getAnimalCount(AnimalType animalType) {
         return (int) grid.stream()
                 .flatMap(List::stream)
-                .filter(animalType::isInstance)
+                .filter(animal -> animal.getType() == animalType)
                 .count();
     }
 

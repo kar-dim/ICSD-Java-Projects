@@ -1,6 +1,11 @@
 package domain;
 
-public class EmptyAnimal extends Animal {
+import domain.enums.AnimalType;
+import domain.interfaces.AnimalActions;
+
+import static domain.enums.AnimalType.EMPTY;
+
+public class EmptyAnimal extends Animal implements AnimalActions {
 
     public EmptyAnimal(int row, int col) {
         super(row, col);
@@ -8,13 +13,17 @@ public class EmptyAnimal extends Animal {
 
     @Override
     public void move(GameGrid gameGrid) {
+
     }
 
     @Override
-    protected void moveAnimalNearby(GameGrid gameGrid, int rowOffset, int colOffset, int noFoodCycles) {
+    public void moveAnimalNearby(GameGrid gameGrid, int rowOffset, int colOffset, int noFoodCycles) {
+
     }
 
     @Override
-    public void multiply(GameGrid gameGrid) {
+    public AnimalType getType() {
+        return EMPTY;
     }
+
 }
