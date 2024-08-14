@@ -2,8 +2,12 @@ plugins {
     id 'java'
 }
 
-compileJava {
-    options.encoding = "UTF-8"
+allprojects {
+    tasks.withType(JavaCompile).tap {
+        configureEach {
+            options.encoding = 'UTF-8'
+        }
+    }
 }
 
 group = 'org.example'
