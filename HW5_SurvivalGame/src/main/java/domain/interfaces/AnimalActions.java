@@ -4,6 +4,7 @@ import domain.*;
 import domain.enums.AnimalType;
 import domain.enums.Coord;
 
+import static domain.enums.AnimalType.ANT;
 import static domain.enums.AnimalType.EMPTY;
 
 public interface AnimalActions {
@@ -19,7 +20,7 @@ public interface AnimalActions {
     default void multiplyAnimalNearby(GameGrid gameGrid, int currentRow, int currentCol, Coord pos) {
         int rowOffset = pos.getRowOffset();
         int colOffset = pos.getColOffset();
-        Animal animal = gameGrid.get(currentRow,currentCol) instanceof Ant ?
+        Animal animal = gameGrid.get(currentRow,currentCol).getType() == ANT ?
                 new Ant(currentRow + rowOffset, currentCol + colOffset) :
                 new Beetle(currentRow + rowOffset, currentCol + colOffset);
         gameGrid.get(currentRow, currentCol).setZeroMultiplyCycles();

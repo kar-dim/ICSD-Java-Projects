@@ -3,8 +3,7 @@ import domain.enums.AnimalType;
 
 import java.util.Random;
 
-import static domain.enums.AnimalType.ANT;
-import static domain.enums.AnimalType.BEETLE;
+import static domain.enums.AnimalType.*;
 
 public class SurvivalGame {
     private final GameGrid gameGrid;
@@ -23,7 +22,7 @@ public class SurvivalGame {
             row = random.nextInt(MAX_GRID_SIZE);
             col = random.nextInt(MAX_GRID_SIZE);
             Animal animal = type == ANT ? new Ant(row,col) : new Beetle(row,col);
-            if (gameGrid.get(row, col) instanceof EmptyAnimal) {
+            if (gameGrid.get(row, col).getType() == EMPTY) {
                 gameGrid.set(row, col, animal);
             } else
                 i--;
@@ -40,6 +39,7 @@ public class SurvivalGame {
             System.out.println("Beetles have conquered the game!");
             return true;
         }
+        System.out.println("Remaining Ants: " + antCounter + "\nRemaining Beetles: " + beetleCounter);
         return false;
     }
 
@@ -51,16 +51,10 @@ public class SurvivalGame {
     }
 
     private void moveAnimals(AnimalType type) {
-        for (int i = 0; i < MAX_GRID_SIZE; i++)
-            for (int j = 0; j < MAX_GRID_SIZE; j++)
-                if (gameGrid.get(i, j).getType() == type && gameGrid.get(i, j).canMoveThisRound())
-                    gameGrid.get(i, j).move(gameGrid);
+        gameGrid.moveAnimals(type);
     }
     public void multiplyAnimals(AnimalType type, int multiplyCyclesRequired) {
-        for (int i = 0; i < MAX_GRID_SIZE; i++)
-            for (int j = 0; j < MAX_GRID_SIZE; j++)
-                if (gameGrid.get(i, j).getType() == type && gameGrid.get(i, j).getMultiplyCycles() == multiplyCyclesRequired)
-                    gameGrid.get(i, j).multiply(gameGrid, i, j);
+        gameGrid.multiplyAnimals(type, multiplyCyclesRequired);
     }
 
 
@@ -74,18 +68,6 @@ public class SurvivalGame {
     }
 
     public void display() {
-        for (int i = 0; i < MAX_GRID_SIZE; i++) {
-            for (int j = 0; j < MAX_GRID_SIZE; j++) {
-                if (j == 0)
-                    System.out.print("|");
-                if (gameGrid.get(i, j) instanceof EmptyAnimal)
-                    System.out.print(" |");
-                else if (gameGrid.get(i, j) instanceof Beetle)
-                    System.out.print("X|");
-                else if (gameGrid.get(i, j) instanceof Ant)
-                    System.out.print("O|");
-            }
-            System.out.println();
-        }
+        System.out.print(gameGrid.display());
     }
 }
