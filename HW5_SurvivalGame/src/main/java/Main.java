@@ -4,14 +4,15 @@ import static domain.enums.AnimalType.ANT;
 import static domain.enums.AnimalType.BEETLE;
 
 public class Main {
+    private static final int BEETLE_NUM = 10;
+    private static final int ANT_NUM = 60;
+
     public static void main(String[] args) {
-        final int BEETLE_NUM = 10;
-        final int ANT_NUM = 60;
         SurvivalGame game = new SurvivalGame(BEETLE_NUM, ANT_NUM);
         Scanner scan = new Scanner(System.in);
 
         int rounds = 0;
-        while (!game.end()) {
+        while (!game.isEnd()) {
             System.out.println("Round: " + (rounds + 1));
             game.display();
             //αναπαραγωγή μυρμιγκιών και έλεγχος για το αν πρέπει να πεθάνουν σκαθάρια

@@ -5,8 +5,6 @@ import domain.enums.AnimalType;
 import java.util.HashMap;
 import java.util.Map;
 
-import static domain.enums.AnimalType.*;
-
 public class GameGrid {
     private final Map<Integer, Animal> grid;
     private final int maxGridSize;
@@ -66,15 +64,13 @@ public class GameGrid {
     public String display() {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < maxGridSize; i++) {
+            builder.append("|");
             for (int j = 0; j < maxGridSize; j++) {
-                if (j == 0)
-                    builder.append("|");
-                if (grid.get(linearId(i, j)).getType() == EMPTY)
-                    builder.append(" |");
-                else if (grid.get(linearId(i, j)).getType() ==  BEETLE)
-                    builder.append("X|");
-                else if (grid.get(linearId(i, j)).getType() ==  ANT)
-                    builder.append("O|");
+                switch(grid.get(linearId(i, j)).getType()) {
+                    case EMPTY ->  builder.append(" |");
+                    case BEETLE -> builder.append("X|");
+                    case ANT -> builder.append("O|");
+                }
             }
             builder.append("\n");
         }

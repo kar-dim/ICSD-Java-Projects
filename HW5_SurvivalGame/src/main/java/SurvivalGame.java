@@ -7,7 +7,7 @@ import static domain.enums.AnimalType.*;
 
 public class SurvivalGame {
     private final GameGrid gameGrid;
-    private final int MAX_GRID_SIZE = 20;
+    private static final int MAX_GRID_SIZE = 20;
 
     public SurvivalGame(int beetleNum, int antsNum) {
         gameGrid = new GameGrid(MAX_GRID_SIZE);
@@ -19,17 +19,15 @@ public class SurvivalGame {
         Random random = new Random();
         int row, col;
         for (int i = 0; i < animalNum; i++) {
-            row = random.nextInt(MAX_GRID_SIZE);
-            col = random.nextInt(MAX_GRID_SIZE);
-            Animal animal = type == ANT ? new Ant(row,col) : new Beetle(row,col);
-            if (gameGrid.get(row, col).getType() == EMPTY) {
-                gameGrid.set(row, col, animal);
-            } else
-                i--;
+            do {
+                row = random.nextInt(MAX_GRID_SIZE);
+                col = random.nextInt(MAX_GRID_SIZE);
+            } while (gameGrid.get(row, col).getType() != EMPTY);
+            gameGrid.set(row, col, type == ANT ? new Ant(row,col) : new Beetle(row,col));
         }
     }
 
-    public boolean end() {
+    public boolean isEnd() {
         int beetleCounter = gameGrid.getAnimalCount(BEETLE);
         int antCounter = gameGrid.getAnimalCount(ANT);
         if (beetleCounter == 0) {
@@ -56,7 +54,6 @@ public class SurvivalGame {
     public void multiplyAnimals(AnimalType type, int multiplyCyclesRequired) {
         gameGrid.multiplyAnimals(type, multiplyCyclesRequired);
     }
-
 
     private void enableMovementAgain() {
         gameGrid.enableMovement();
