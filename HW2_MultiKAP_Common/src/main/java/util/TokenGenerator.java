@@ -1,10 +1,11 @@
-package util;//Nikolaos Katsiopis icsd13076
+package util;
 
 import java.security.SecureRandom;
 import java.util.Random;
 
 public class TokenGenerator {
-    private final char[] symbols = ("ABCDEFGHIJKLMNOPQRSTUVWXYZ" +  "abcdefghijklmnopqrstuvwxyz"+ "0123456789").toCharArray();
+    private static final char[] symbols = ("ABCDEFGHIJKLMNOPQRSTUVWXYZ" +  "abcdefghijklmnopqrstuvwxyz"+ "0123456789").toCharArray();
+
     public String generateToken() {
         Random random = new SecureRandom();
         char[] buf = new char[21];
